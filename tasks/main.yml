@@ -1,0 +1,27 @@
+# code: language=Ansible insertSpaces=true tabSize=2
+
+
+- name: Fetch virtual machines list
+  shell: >
+    qm list --full 2>/dev/null | tail -n +2 
+  register: _vm_list_raw
+  tags: [always]
+
+
+- name: Build virtual machines map
+  set_fact:
+    _vm_map: "{{ _vm_list_raw.stdout_lines \
+                 | map_list(' ', ['id', 'name', 'state', 'memory', 'disk', 'pid']) \
+                 | aggregate('id') }}"
+  tags: [always]
+
+
+- name: Create virtual machine template
+  include_tasks:
+    file: create_template.yml
+  when:
+    - vm.id | string not in _vm_map
+  with_items: "{{ proxmox_templates | map('combine', proxmox_templates_defaults) | list }}"
+  loop_control:
+    loop_var: vm
+  tags: [never, setup]

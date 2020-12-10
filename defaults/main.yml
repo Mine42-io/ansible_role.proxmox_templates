@@ -1,0 +1,52 @@
+# Proxmox VM templates values (required and optional/defaults).
+# ---
+# 
+# id (integer, required)            : KVM template ID (must be unique)
+# name (string, required)           : KVM template name (must be unique)
+# image (string, required)          : Image name.
+#
+# cores (integer, optional)         : Number of CPU cores
+# sockets (integer, optional)       : Number of CPU sockets
+# memory (integer, optional)        : Memory size (in Mb)
+#
+# networks (list, optional)         : List of VM networks.
+#                                     Do **not** add the network ID manually.
+#
+# image_url (string, optional)      : Image URL to download automatically.
+# image_dirname (string, optional)  : Store downloaded image in this directory.
+# image_storage (string, optional)  : Image storage type.
+#                                     Ex: local-lvm, pvedir
+#
+# cinit (bool, optional)            : True if this is a Cloud-Init template.
+#                                     Defaults to true.
+# cinit_storage (string, optional)  : Cloud-Init disk storage type.
+#                                     Ex: local-lvm, pvedir
+#
+# agent (bool, optional)            : True if Qemu agent is enabled.
+#                                     Defaults to False.
+proxmox_templates_defaults:
+  - cores: 1
+    sockets: 1
+    memory: 512
+    networks:
+      - "model=virtio,bridge=vmbr1,firewall=1"
+    image_dirname: "/var/lib/vz/template/iso"
+    image_storage: "local"
+    cinit: true
+    cinit_storage: "local"
+    agent: false
+
+
+# List of Proxmox VM templates.
+# ---
+# See variable 'proxmox_templates_defaults' for required and optional
+# variables.
+#
+# Working example:
+#
+# proxmox_templates:
+#   - id: 9000
+#     name: "ubuntu-20.04-cloudinit"
+#     image: "focal-server-cloudimg-amd64.img"
+#     image_url: "https://cloud-images.ubuntu.com/focal/current/focal-server-cloudimg-amd64.img"
+proxmox_templates: []

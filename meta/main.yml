@@ -1,0 +1,4 @@
+galaxy_info:
+  role_name: proxmox_templates
+  author: jpclipffel
+  description: Manages KVM templates on ProxmoxVE

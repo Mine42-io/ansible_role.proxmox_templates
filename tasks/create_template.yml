@@ -1,0 +1,69 @@
+# code: language=Ansible insertSpaces=true tabSize=2
+
+
+- name: Download image
+  get_url:
+    url: "{{ vm.image_url }}"
+    dest: "{{ vm.image_dirname | dirname }}/{{ vm.image }}"
+  tags: [never, setup]
+
+
+- name: Create virtual machine
+  shell: >
+    qm create {{ vm.id }}
+    --name {{ vm.name }}
+    --cores {{ vm.cores }}
+    --sockets {{ vm.sockets }}
+    --memory {{ vm.memory }}
+  register: _create_vm
+  failed_when:
+    - _create_vm.rc != 0 and not "already exists on node" in _create_vm.stderr
+  tags: [never, setup]
+
+
+- name: Configure network
+  shell: >
+    qm set {{ vm.id }} --net{{ network_id }} {{ item }}
+  loop: "{{ vm.networks }}"
+  loop_control:
+    index_var: network_id
+  tags: [never, setup]
+
+
+- name: Import disk image
+  shell: >
+    qm importdisk {{ vm.id }} "{{ vm.image_dirname | dirname }}/{{ vm.image }}" {{ vm.image_storage }}
+  tags: [never, setup]
+
+
+- name: Attach disk image as first disk
+  shell: >
+    qm set {{ vm.id }}
+    --scsihw virtio-scsi-pci
+    --scsi0 {{ vm.image_storage }}:{{ vm.id }}/vm-{{ vm.id }}-disk-0.raw
+  tags: [never, setup]
+
+
+- block:
+
+  - name: (Cloud-Init) Add Cloud-Init CDROM drive
+    shell: >
+      qm set {{ vm.id }} --ide2 {{ vm.cinit_storage }}:cloudinit
+
+  - name: (Cloud-Init) Set boot disk to SCSI0
+    shell: >
+      qm set {{ vm.id }} --boot c --bootdisk scsi0
+
+  - name: (Cloud-Init) Set serial console
+    shell: >
+      qm set {{ vm.id }} --serial0 socket --vga serial0
+
+  when:
+    - vm.cinit
+  tags: [never, setup]
+
+
+- name: Convert virtual machine to template
+  shell: >
+    qm template {{ vm.id }}
+  tags: [never, setup]
