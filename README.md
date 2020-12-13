@@ -22,9 +22,15 @@ See `defaults/main.yml` for the full list of variables.
 | `proxmox_templates_defaults` | `map`           | No       | See `defaults/main.yml`  | Default KVM templates variables |
 | `proxmox_templates`          | `list` of `map` | No       | `[]` (empty list)        | KVM templates to create         |
 
-### Configure your templates
+### Configure KVM templates
 
-This role creates the templates defined in `proxmox_templates`:
+This role creates the templates defined in the variable `proxmox_templates`.
+Each `proxmox_templates` items requires only the `id`, `name` and `image` attributes.
+All other attributes are merged from `proxmox_templates_defaults`.
+
+You may override `proxmox_templates_defaults` with your own defaults (e.g. using an external `vars` file).
+
+#### Working example
 
 ```yaml
 proxmox_templates:
@@ -35,12 +41,7 @@ proxmox_templates:
   # ...
 ```
 
-`proxmox_templates` items requires only the `id`, `name` and `image` attributes.
-All other attributes are merged from `proxmox_templates_defaults`.
-
-You may override `proxmox_templates_defaults` with your own defaults (e.g. using an external `vars` file).
-
-Supported variables:
+#### KVM templates variables
 
 | Variable        | Type               | Required | Default                                      | Description                                              |
 |-----------------|--------------------|----------|----------------------------------------------|----------------------------------------------------------|
@@ -56,6 +57,16 @@ Supported variables:
 | `image_storage` | `string`           | No       | `local`                                      | Image storage type (`local`, `local-lvm`, ...)           |
 | `cinit`         | `bool`             | No       | `true`                                       | True if this is a Cloud-Init template                    |
 | `cinit_storage` | `string`           | No       | `local`                                      | Cloud-Init disk storage type (`local`, `local-lvm`, ...) |
+
+#### About the `networks` variables
+
+* By default, each template has an interface on bridge `vmbr1` and has PVE firewall enabled
+  * This is the default on the infrastructure for which this role was wrote.
+  * You may override this using a custom `proxmox_templates_defaults`
+* Do **not** specify the network ID in the `networks` variable
+  The ID is deduced from each element position in the list
+
+---
 
 ## Filter plugins
 
